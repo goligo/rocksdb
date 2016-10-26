@@ -20,6 +20,10 @@ public class Environment {
     return OS.contains("aix");
   }
   
+  public static boolean isFreeBSD() {
+    return (OS.contains("freebsd"));
+  }
+
   public static boolean isUnix() {
     return OS.contains("nix") ||
         OS.contains("nux");
@@ -56,6 +60,8 @@ public class Environment {
       return String.format("%sjni-osx", name);
     } else if (isAix() && is64Bit()) {
       return String.format("%sjni-aix64", name);
+    } else if (isFreeBSD()) {
+      return String.format("%sjni-freebsd%d", name, is64Bit() ? 64 : 32);
     } else if (isSolaris()) {
       final String arch = is64Bit() ? "64" : "32";
       return String.format("%sjni-solaris%s", name, arch);
@@ -71,7 +77,7 @@ public class Environment {
   }
 
   private static String appendLibOsSuffix(final String libraryFileName, final boolean shared) {
-    if (isUnix() || isAix() || isSolaris()) {
+    if (isUnix() || isAix() || isSolaris() || isFreeBSD()) {
       return libraryFileName + ".so";
     } else if (isMac()) {
       return libraryFileName + (shared ? ".dylib" : ".jnilib");

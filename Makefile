@@ -1515,6 +1515,11 @@ ifeq ($(PLATFORM), OS_AIX)
 	EXTRACT_SOURCES = gunzip < TAR_GZ | tar xvf -
 	SNAPPY_MAKE_TARGET = libsnappy.la
 endif
+ifeq ($(PLATFORM), OS_FREEBSD)
+       ROCKSDBJNILIB = librocksdbjni-freebsd$(ARCH).so
+       ROCKSDB_JAR = rocksdbjni-$(ROCKSDB_MAJOR).$(ROCKSDB_MINOR).$(ROCKSDB_PATCH)-freebsd$(ARCH).jar
+       JAVA_INCLUDE = -I$(JAVA_HOME)/include/ -I$(JAVA_HOME)/include/freebsd
+endif
 
 libz.a:
 	-rm -rf zlib-$(ZLIB_VER)
@@ -1525,7 +1530,7 @@ libz.a:
 		exit 1; \
 	fi
 	tar xvzf zlib-$(ZLIB_VER).tar.gz
-	cd zlib-$(ZLIB_VER) && CFLAGS='-fPIC ${EXTRA_CFLAGS}' LDFLAGS='${EXTRA_LDFLAGS}' ./configure --static && make
+	cd zlib-$(ZLIB_VER) && CFLAGS='-fPIC ${EXTRA_CFLAGS}' LDFLAGS='${EXTRA_LDFLAGS}' ./configure --static && ${MAKE}
 	cp zlib-$(ZLIB_VER)/libz.a .
 
 libbz2.a:
@@ -1537,7 +1542,7 @@ libbz2.a:
 		exit 1; \
 	fi
 	tar xvzf bzip2-$(BZIP2_VER).tar.gz
-	cd bzip2-$(BZIP2_VER) && make CFLAGS='-fPIC -O2 -g -D_FILE_OFFSET_BITS=64 ${EXTRA_CFLAGS}' AR='ar ${EXTRA_ARFLAGS}'
+	cd bzip2-$(BZIP2_VER) && ${MAKE} CFLAGS='-fPIC -O2 -g -D_FILE_OFFSET_BITS=64 ${EXTRA_CFLAGS}' AR='ar ${EXTRA_ARFLAGS}'
 	cp bzip2-$(BZIP2_VER)/libbz2.a .
 
 libsnappy.a:
@@ -1550,7 +1555,7 @@ libsnappy.a:
 	fi
 	tar xvzf snappy-$(SNAPPY_VER).tar.gz
 	cd snappy-$(SNAPPY_VER) && CFLAGS='${EXTRA_CFLAGS}' CXXFLAGS='${EXTRA_CXXFLAGS}' LDFLAGS='${EXTRA_LDFLAGS}' ./configure --with-pic --enable-static --disable-shared
-	cd snappy-$(SNAPPY_VER) && make ${SNAPPY_MAKE_TARGET}
+	cd snappy-$(SNAPPY_VER) && ${MAKE} ${SNAPPY_MAKE_TARGET}
 	cp snappy-$(SNAPPY_VER)/.libs/libsnappy.a .
 
 liblz4.a:
@@ -1563,7 +1568,7 @@ liblz4.a:
 		exit 1; \
 	fi
 	tar xvzf lz4-$(LZ4_VER).tar.gz
-	cd lz4-$(LZ4_VER)/lib && make CFLAGS='-fPIC -O2 ${EXTRA_CFLAGS}' all
+	cd lz4-$(LZ4_VER)/lib && ${MAKE} CFLAGS='-fPIC -O2 ${EXTRA_CFLAGS}' all
 	cp lz4-$(LZ4_VER)/lib/liblz4.a .
 
 libzstd.a:
@@ -1576,7 +1581,7 @@ libzstd.a:
 		exit 1; \
 	fi
 	tar xvzf zstd-$(ZSTD_VER).tar.gz
-	cd zstd-$(ZSTD_VER)/lib && make CFLAGS='-fPIC -O2 ${EXTRA_CFLAGS}' all
+	cd zstd-$(ZSTD_VER)/lib && ${MAKE} CFLAGS='-fPIC -O2 ${EXTRA_CFLAGS}' all
 	cp zstd-$(ZSTD_VER)/lib/libzstd.a .
 
 # A version of each $(LIBOBJECTS) compiled with -fPIC and a fixed set of static compression libraries
@@ -1675,6 +1680,12 @@ commit_prereq: build_tools/rocksdb-lego-determinator \
                build_tools/precommit_checker.py
 	J=$(J) build_tools/precommit_checker.py unit unit_481 clang_unit release release_481 clang_release tsan asan ubsan lite unit_non_shm
 	$(MAKE) clean && $(MAKE) jclean && $(MAKE) rocksdbjava;
+
+xfunc:
+	for xftest in $(XFUNC_TESTS); do \
+		echo "===== Running xftest $$xftest"; \
+		$(MAKE) check ROCKSDB_XFUNC_TEST="$$xftest" tests-regexp="DBTest" ;\
+	done
 
 # ---------------------------------------------------------------------------
 #  	Platform-specific compilation
