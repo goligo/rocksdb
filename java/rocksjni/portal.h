@@ -926,7 +926,7 @@ class JniUtil {
         jbyteArray jret_value =
             env->NewByteArray(static_cast<jsize>(value.size()));
         env->SetByteArrayRegion(jret_value, 0, static_cast<jsize>(value.size()),
-                                reinterpret_cast<const jbyte*>(value.c_str()));
+                                const_cast<jbyte*>(reinterpret_cast<const jbyte*>(value.c_str())));
         return jret_value;
       }
       rocksdb::RocksDBExceptionJni::ThrowNew(env, s);

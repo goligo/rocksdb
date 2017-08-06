@@ -195,7 +195,7 @@ jobjectArray Java_org_rocksdb_RocksDB_listColumnFamilies(
           env->NewByteArray(static_cast<jsize>(column_family_names[i].size()));
       env->SetByteArrayRegion(
           jcf_value, 0, static_cast<jsize>(column_family_names[i].size()),
-          reinterpret_cast<const jbyte*>(column_family_names[i].data()));
+          const_cast<jbyte*>(reinterpret_cast<const jbyte*>(column_family_names[i].data())));
       env->SetObjectArrayElement(jresults, static_cast<jsize>(i), jcf_value);
       env->DeleteLocalRef(jcf_value);
     }
@@ -503,7 +503,7 @@ jbyteArray rocksdb_get_helper(
   if (s.ok()) {
     jbyteArray jret_value = env->NewByteArray(static_cast<jsize>(value.size()));
     env->SetByteArrayRegion(jret_value, 0, static_cast<jsize>(value.size()),
-                            reinterpret_cast<const jbyte*>(value.c_str()));
+                            const_cast<jbyte*>(reinterpret_cast<const jbyte*>(value.c_str())));
     return jret_value;
   }
   rocksdb::RocksDBExceptionJni::ThrowNew(env, s);
@@ -628,7 +628,7 @@ jint rocksdb_get_helper(JNIEnv* env, rocksdb::DB* db,
   jint length = std::min(jval_len, cvalue_len);
 
   env->SetByteArrayRegion(jval, jval_off, length,
-                          reinterpret_cast<const jbyte*>(cvalue.c_str()));
+                          const_cast<jbyte*>(reinterpret_cast<const jbyte*>(cvalue.c_str())));
   return cvalue_len;
 }
 
@@ -706,7 +706,7 @@ jobjectArray multi_get_helper(JNIEnv* env, jobject jdb, rocksdb::DB* db,
           env->NewByteArray(static_cast<jsize>(values[i].size()));
       env->SetByteArrayRegion(
           jentry_value, 0, static_cast<jsize>(values[i].size()),
-          reinterpret_cast<const jbyte*>(values[i].c_str()));
+          const_cast<jbyte*>(reinterpret_cast<const jbyte*>(values[i].c_str())));
       env->SetObjectArrayElement(jresults, static_cast<jsize>(i), jentry_value);
       env->DeleteLocalRef(jentry_value);
     }
@@ -1265,7 +1265,7 @@ jlongArray Java_org_rocksdb_RocksDB_iterators(
     for (std::vector<rocksdb::Iterator*>::size_type i = 0;
         i < iterators.size(); i++) {
       env->SetLongArrayRegion(jLongArray, static_cast<jsize>(i), 1,
-                              reinterpret_cast<const jlong*>(&iterators[i]));
+                              const_cast<jlong*>(reinterpret_cast<const jlong*>(&iterators[i])));
     }
     return jLongArray;
   } else {

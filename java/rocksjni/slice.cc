@@ -165,7 +165,7 @@ jbyteArray Java_org_rocksdb_Slice_data0(
   const int len = static_cast<int>(slice->size());
   const jbyteArray data = env->NewByteArray(len);
   env->SetByteArrayRegion(data, 0, len,
-    reinterpret_cast<const jbyte*>(slice->data()));
+    const_cast<jbyte*>(reinterpret_cast<const jbyte*>(slice->data())));
   return data;
 }
 
